@@ -5,72 +5,73 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
-    private Button On,Off,Visible,list;
+    private Button list;
     private BluetoothAdapter BA;
     private Set<BluetoothDevice> pairedDevices;
     private ListView lv;
+
+    ArrayList<String> BT_list = new ArrayList<>();
+    ArrayList<String> BT_Address_list = new ArrayList<>();
+    Save_and_Read_Database SARD;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main_new);
 
-        On = (Button)findViewById(R.id.button1);
-        Off = (Button)findViewById(R.id.button2);
-        Visible = (Button)findViewById(R.id.button3);
-        list = (Button)findViewById(R.id.button4);
-
-        lv = (ListView)findViewById(R.id.listView1);
+        SARD = new Save_and_Read_Database();
+        SARD.settings = getSharedPreferences("DATA", 0);
 
         BA = BluetoothAdapter.getDefaultAdapter();
+        list = (Button) findViewById(R.id.button4);
+
+        lv = (ListView) findViewById(R.id.listView1);
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Log.i("onItemClick", "" + BT_Address_list.get(i));
+                String device_code = BT_Address_list.get(i);
+
+                SARD.save_BT_ADD(device_code);
+
+                Intent intent = new Intent(MainActivity.this, Ctrl_Page.class);
+                startActivity(intent);
+            }
+        });
+
+
     }
 
-    public void on(View view){
-        if (!BA.isEnabled()) {
-            Intent turnOn = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(turnOn, 0);
-            Toast.makeText(getApplicationContext(),"Turned on"
-                    , Toast.LENGTH_LONG).show();
-        }
-        else{
-            Toast.makeText(getApplicationContext(),"Already on",
-                    Toast.LENGTH_LONG).show();
-        }
-    }
+    public void list(View view) {
+        BT_list = new ArrayList<>();
+        BT_Address_list = new ArrayList<>();
 
-    public void list(View view){
+
         pairedDevices = BA.getBondedDevices();
 
-        ArrayList list = new ArrayList();
-        for(BluetoothDevice bt : pairedDevices)
-            list.add(bt.getName());
+        for (BluetoothDevice bt : pairedDevices) {
+            BT_list.add(bt.getName());
+            BT_Address_list.add(bt.getAddress());
+        }
 
-        Toast.makeText(getApplicationContext(),"Showing Paired Devices",
+        Toast.makeText(getApplicationContext(), "Showing Paired Devices",
                 Toast.LENGTH_SHORT).show();
-        final ArrayAdapter adapter = new ArrayAdapter
-                (this,android.R.layout.simple_list_item_1, list);
+        final ArrayAdapter<String> adapter = new ArrayAdapter<>
+                (this, android.R.layout.simple_list_item_1, BT_list);
         lv.setAdapter(adapter);
-
     }
 
-    public void off(View view){
-        BA.disable();
-        Toast.makeText(getApplicationContext(),"Turned off" ,
-                Toast.LENGTH_LONG).show();
-    }
-
-    public void visible(View view){
-        Intent getVisible = new Intent(BluetoothAdapter.
-                ACTION_REQUEST_DISCOVERABLE);
-        startActivityForResult(getVisible, 0);
-    }
 }
