@@ -11,16 +11,15 @@ void setup() {
   softSerial.begin(57600);
   softSerial.setTimeout(20);
 
-  xTaskCreate(readData, (const portCHAR *)"readData", 512, NULL, 3, NULL );
-  xTaskCreate(Blink, (const portCHAR *)"Blink", 128, NULL, 2 ,  NULL );
-  xTaskCreate(vTask1, (const portCHAR *)"vTask1", 64, NULL, 0 ,  NULL );
+  xTaskCreate(readData, (const portCHAR *)"readData", 360, NULL, 0, NULL );
+  xTaskCreate(Blink, (const portCHAR *)"Blink", 84, NULL, 2 ,  NULL );
+  //  xTaskCreate(vTask1, (const portCHAR *)"vTask1", 84, NULL, 3 ,  NULL );
 }
 
 void loop()
 {
 
 }
-
 
 void Blink(void *pvParameters)  // This is a task.
 {
@@ -31,9 +30,8 @@ void Blink(void *pvParameters)  // This is a task.
     vTaskDelay(1000 / portTICK_PERIOD_MS );
     digitalWrite(13, LOW);
     vTaskDelay(1000 / portTICK_PERIOD_MS );
-//    vTask_Test("Blink");
     Serial.print("Blink: ");
-    Serial.print(uxTaskGetStackHighWaterMark(NULL));
+    Serial.println(uxTaskGetStackHighWaterMark(NULL));
   }
 }
 
@@ -55,7 +53,6 @@ void readData(void *pvParameters)  // This is a task.
       Serial.println("----------------------------");
     }
     vTaskDelay(50 / portTICK_PERIOD_MS);
-//    vTask_Test("readData");   
     Serial.print("readData: ");
     Serial.println(uxTaskGetStackHighWaterMark(NULL));
   }
@@ -66,13 +63,15 @@ void vTask1( void * pvParameters )
   (void) pvParameters;
   for ( ;; )
   {
-    /* Call any function. */
-    vTaskDelay( 1000 / portTICK_PERIOD_MS );
     Serial.print("Blink: ");
     Serial.print(uxTaskGetStackHighWaterMark(Blink));
     Serial.print("\t");
     Serial.print("readData: ");
-    Serial.println(uxTaskGetStackHighWaterMark(readData));
+    Serial.print(uxTaskGetStackHighWaterMark(readData));
+    Serial.print("\t");
+    Serial.print("vTask1: ");
+    Serial.println(uxTaskGetStackHighWaterMark(vTask1));
+    vTaskDelay( 100 / portTICK_PERIOD_MS );
   }
 }
 
